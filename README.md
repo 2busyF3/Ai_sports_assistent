@@ -23,24 +23,42 @@ If `py` is unavailable, install Python 3.11+ from [python.org](https://www.pytho
 
 ## Usage
 
-Pass your workout in the `--text` argument. Put each set on a new line and separate exercises with a blank line. Sleep and body weight are optional.
+Start the assistant without `--text` to use the recommended structured input. It asks for each field separately, so you do not need to type multiline PowerShell commands.
 
 ```powershell
-fitness-assistant --text "Bench press 100x8`n100x8`n100x6`n`nChest fly 20x12`n20x10`n20x9`n`nSleep 6 hours`nWeight 83 kg"
+fitness-assistant
+```
+
+Example session:
+
+```text
+Exercise name: Bench press
+Weight (kg): 100
+Reps per set: 10
+Number of sets: 3
+Exercise name:
+Sleep (hours, optional): 8
+Body weight (kg, optional): 83
 ```
 
 The first run creates `fitness.db` beside the application. Keep this file: it contains the training history used for comparisons. Provide `--db` to use a different database:
 
 ```powershell
-fitness-assistant --db data\my-workouts.db --text "Squat 100x5`n100x5`n100x5`n`nSleep 8 hours"
+fitness-assistant --db data\my-workouts.db
 ```
 
 Run the command again after your next workout with the same database file. The response will show the previous sets, volume change, recovery risks, and a recommendation.
 
+Use `--text` only when you want to parse a free-form workout note:
+
+```powershell
+fitness-assistant --text "Bench press 100x8`n100x8`n100x6`n`nSleep 6 hours"
+```
+
 If the console command is unavailable, run the entry point directly:
 
 ```powershell
-.venv\Scripts\python.exe main.py --text "Bench press 100x8`n100x8`n100x6`n`nSleep 6 hours"
+.venv\Scripts\python.exe main.py
 ```
 
 ### Optional OpenAI extraction

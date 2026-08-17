@@ -1,6 +1,7 @@
 from database.sqlite import SQLiteRepository
 from graph.graph import build_graph
 from llm.extractor import extract_locally
+from main import collect_workout
 
 
 TEXT = """Bench press 100x8
@@ -21,6 +22,17 @@ def test_local_extractor() -> None:
     assert workout.exercises[0].name == "Bench press"
     assert workout.exercises[0].sets[-1].reps == 6
     assert workout.sleep_hours == 6
+
+
+def test_interactive_input_collects_separate_fields() -> None:
+    answers = iter(["Bench press", "100", "10", "3", "", "8", "83"])
+    workout = collect_workout(lambda _: next(answers))
+    assert workout.exercises[0].name == "Bench press"
+    assert len(workout.exercises[0].sets) == 3
+    assert workout.exercises[0].sets[0].weight_kg == 100
+    assert workout.exercises[0].sets[0].reps == 10
+    assert workout.sleep_hours == 8
+    assert workout.body_weight_kg == 83
 
 
 def test_graph_persists_and_compares(tmp_path) -> None:

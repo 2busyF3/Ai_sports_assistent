@@ -9,6 +9,9 @@ from llm.extractor import extract_workout
 
 
 def extract_node(state: FitnessState) -> dict:
+    """Use already structured interactive input, or extract it from raw text."""
+    if "workout" in state:
+        return {}
     return {"workout": extract_workout(state["raw_text"])}
 
 
