@@ -41,3 +41,16 @@ class UserProfile(BaseModel):
     height_cm: float = Field(gt=0, le=300)
     body_weight_kg: float = Field(gt=0, le=500)
     weight_updated_at: datetime
+
+
+class ExerciseTrendPoint(BaseModel):
+    performed_at: datetime
+    total_volume_kg: float
+    best_set_score: float
+    max_weight_kg: float
+    total_reps: int
+
+
+class SleepEntry(BaseModel):
+    slept_at: datetime = Field(default_factory=datetime.now)
+    hours: float = Field(gt=0, le=24)

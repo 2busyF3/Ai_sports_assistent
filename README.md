@@ -23,6 +23,16 @@ If `py` is unavailable, install Python 3.11+ from [python.org](https://www.pytho
 
 ## Usage
 
+### Desktop interface
+
+Launch the local desktop application:
+
+```powershell
+fitness-assistant-ui
+```
+
+It includes a chat-style workout entry screen, a History tab with exercise-specific progress charts, and a Settings tab for your profile. The chart uses dates on the horizontal axis and lets you switch between best-set strength (`weight × reps`), training volume, and maximum working weight.
+
 Start the assistant without `--text` to enter a free-form workout note directly in the terminal. Finish the note with `END` on a separate line.
 
 ```powershell

@@ -30,6 +30,11 @@ def _number(value: str) -> float:
     return float(value.replace(",", "."))
 
 
+def detect_language(text: str) -> str:
+    """Treat a note containing Cyrillic letters as Russian; English is the default."""
+    return "ru" if re.search(r"[А-Яа-яЁё]", text) else "en"
+
+
 def _repeat_count(line: str, match: re.Match[str]) -> int:
     if match.groupdict().get("count"):
         return int(match["count"])

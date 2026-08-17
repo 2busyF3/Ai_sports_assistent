@@ -15,6 +15,7 @@ dev = ["pytest>=8.0.0"]
 
 [project.scripts]
 fitness-assistant = "main:main"
+fitness-assistant-ui = "app:main"
 
 [tool.setuptools]
 py-modules = ["main", "models"]
