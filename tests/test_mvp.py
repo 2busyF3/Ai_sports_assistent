@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from database.sqlite import SQLiteRepository
+from database.demo import seed_demo_data
 from graph.graph import build_graph
 from llm.extractor import extract_locally
 from main import collect_workout_note, initialize_or_update_profile
@@ -56,9 +57,10 @@ def test_russian_free_form_parser_and_session_metrics() -> None:
 def test_response_uses_note_language(tmp_path) -> None:
     graph = build_graph(SQLiteRepository(tmp_path / "language.db"))
     result = graph.invoke({"raw_text": "Приседания 100х8\n100х8\nСон 6 часов"})
-    assert "Приседания: сейчас" in result["response"]
+    assert "Приседания" in result["response"]
+    assert "Подходы:" in result["response"]
     assert "Сон ниже целевого диапазона" in result["response"]
-    assert "Рекомендация:" in result["response"]
+    assert "Итоговая рекомендация:" in result["response"]
 
 
 def test_note_input_and_weekly_profile(tmp_path) -> None:
@@ -81,7 +83,7 @@ def test_graph_persists_and_compares(tmp_path) -> None:
     first = graph.invoke({"raw_text": TEXT})
     second = graph.invoke({"raw_text": TEXT})
     assert "first record" in first["response"]
-    assert "previous workout 100x8, 100x8, 100x6" in second["response"]
+    assert "Previous workout: 100x8, 100x8, 100x6" in second["response"]
     assert "Sleep is below the target range" in second["response"]
 
 
@@ -116,3 +118,13 @@ def test_calendar_and_workout_detail_queries(tmp_path) -> None:
     assert repository.workout_details(int(workouts[0]["id"]))[0]["name"] == "Squat"
     suggestion = repository.latest_workout_exercises()[0]
     assert (suggestion["name"], suggestion["max_weight_kg"], suggestion["max_reps"]) == ("Squat", 100, 5)
+
+
+def test_demo_data_is_seeded_once_and_can_be_cleared(tmp_path) -> None:
+    repository = SQLiteRepository(tmp_path / "demo.db")
+    assert seed_demo_data(repository)
+    assert repository.has_workouts()
+    assert not seed_demo_data(repository)
+    repository.clear_demo_data()
+    assert not repository.has_workouts()
+    assert repository.get_profile() is None

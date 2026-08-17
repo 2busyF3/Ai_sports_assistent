@@ -31,7 +31,18 @@ Launch the local desktop application:
 fitness-assistant-ui
 ```
 
-It includes a chat-style workout entry screen, a History tab with exercise-specific progress charts, and a Settings tab for your profile. The chart uses dates on the horizontal axis and lets you switch between best-set strength (`weight × reps`), training volume, and maximum working weight.
+It includes a Home dashboard, a chat-style workout entry screen, a separate Sleep tab, a History tab with exercise-specific progress charts and calendar, and a Settings tab for your profile. The chart uses dates on the horizontal axis and displays relative strength (`best weight × reps ÷ body weight`) with a trend line.
+
+On the first launch, the app creates sample workouts so you can immediately explore the Home dashboard, the strength graph, and the training calendar. Use **Clear demo data** on the Home page to remove only those sample records when you are ready to start logging your own training.
+
+To run the project after downloading it from GitHub:
+
+```powershell
+py -m venv .venv
+.venv\Scripts\activate
+pip install -e ".[dev]"
+.venv\Scripts\python.exe app.py
+```
 
 Start the assistant without `--text` to enter a free-form workout note directly in the terminal. Finish the note with `END` on a separate line.
 

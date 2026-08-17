@@ -6,6 +6,7 @@ from datetime import datetime
 from tkinter import messagebox, ttk
 
 from database.sqlite import SQLiteRepository
+from database.demo import seed_demo_data
 from graph.graph import build_graph
 from models import SleepEntry
 
@@ -22,6 +23,7 @@ class FitnessAssistantApp(tk.Tk):
     def __init__(self, database_path: str = "fitness.db") -> None:
         super().__init__()
         self.repository = SQLiteRepository(database_path)
+        self.demo_loaded = seed_demo_data(self.repository)
         self.graph = build_graph(self.repository)
         self.title("AI Fitness Assistant")
         self.geometry("1120x760")
@@ -56,6 +58,10 @@ class FitnessAssistantApp(tk.Tk):
         self.refresh_history()
         self.refresh_dashboard()
         self.after(200, self._prompt_initial_profile)
+        if self.demo_loaded:
+            self.after(400, lambda: messagebox.showinfo(
+                "Demo data loaded", "Sample workouts were added so you can explore Home, History, and the calendar. Use Clear demo data when you are ready to start."
+            ))
 
     def _configure_style(self) -> None:
         style = ttk.Style(self)
@@ -92,6 +98,8 @@ class FitnessAssistantApp(tk.Tk):
         self.daily_advice.grid(row=1, column=0, sticky="nsew", pady=(10, 0))
         ttk.Button(self.home_tab, text="Refresh overview", command=self.refresh_dashboard).grid(
             row=3, column=0, sticky="w", pady=(16, 0))
+        ttk.Button(self.home_tab, text="Clear demo data", command=self.clear_demo_data).grid(
+            row=3, column=1, sticky="w", pady=(16, 0))
 
     def _stat_card(self, label: str, value: str) -> tk.Frame:
         card = tk.Frame(self.home_tab, bg="#F8FAFC", padx=16, pady=14, highlightthickness=1, highlightbackground=GRID)
@@ -247,6 +255,17 @@ class FitnessAssistantApp(tk.Tk):
         else:
             plan = "\nLog a workout to receive exercise and working-weight suggestions here."
         self.daily_advice.config(text=intro + plan)
+
+    def clear_demo_data(self) -> None:
+        if not messagebox.askyesno("Clear demo data", "Remove only the sample data added for first launch? Your own saved workouts will remain."):
+            return
+        self.repository.clear_demo_data()
+        self.load_profile()
+        self.refresh_sleep_status()
+        self.refresh_history()
+        self.refresh_dashboard()
+        messagebox.showinfo("Demo data cleared", "Sample data was removed. Add your profile and log your first workout.")
+        self._prompt_initial_profile()
 
     def save_sleep(self) -> None:
         try:

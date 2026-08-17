@@ -6,3 +6,5 @@ fitness.db
 .pytest_cache/
 .pytest-tmp/
 *.egg-info/
+
+AI-Fitness-Assistant.zip

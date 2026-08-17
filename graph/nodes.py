@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from analytics.fatigue import recovery_risks
 from analytics.progression import volume_change_percent
-from analytics.volume import format_sets
+from analytics.volume import exercise_volume, format_sets
 from database.sqlite import SQLiteRepository
 from graph.state import FitnessState
 from llm.extractor import detect_language, extract_workout
@@ -72,22 +72,57 @@ def response_node(state: FitnessState) -> dict:
     russian = state["language"] == "ru"
     lines: list[str] = []
     for exercise in workout.exercises:
-        lines.append(f"{exercise.name}: {'сейчас' if russian else 'current'} {format_sets(exercise)}")
+        current_volume = exercise_volume(exercise)
+        max_weight = max(item.weight_kg for item in exercise.sets)
+        lines.append(f"\n{exercise.name}")
+        lines.append(f"{'Подходы' if russian else 'Working sets'}: {format_sets(exercise)}")
+        lines.append(f"{'Текущий объём' if russian else 'Current volume'}: {current_volume:,.0f} kg")
         previous = state["previous"].get(exercise.name)
         if previous:
             old_sets = ", ".join(f"{item.weight_kg:g}x{item.reps}" for item in previous.sets)
-            lines.append(f"{'прошлый раз' if russian else 'previous workout'} {old_sets}")
+            lines.append(f"{'Прошлый раз' if russian else 'Previous workout'}: {old_sets}")
             change = state["volume_changes"][exercise.name]
             if russian:
-                lines.append(f"объём {'вырос' if change >= 0 else 'снизился'} на {abs(change):.0f}%")
+                lines.append(f"Объём {'вырос' if change >= 0 else 'снизился'} на {abs(change):.0f}%.")
+                if change >= 5:
+                    assessment = "Нагрузка растёт — это хороший сигнал, если техника и самочувствие стабильны."
+                elif change <= -10:
+                    assessment = "Объём заметно снизился: проверьте восстановление и не форсируйте прогрессию."
+                else:
+                    assessment = "Нагрузка близка к прошлому уровню — закрепляйте технику и качество повторений."
             else:
-                lines.append(f"volume {'increased' if change >= 0 else 'decreased'} by {abs(change):.0f}%")
+                lines.append(f"Volume {'increased' if change >= 0 else 'decreased'} by {abs(change):.0f}%.")
+                if change >= 5:
+                    assessment = "Workload is increasing, which is positive if technique and recovery remain stable."
+                elif change <= -10:
+                    assessment = "Volume dropped noticeably; review recovery and do not force progression."
+                else:
+                    assessment = "Workload is close to the previous session; consolidate technique and rep quality."
+            lines.append(f"{'Оценка' if russian else 'Assessment'}: {assessment}")
         else:
-            lines.append("первая запись: это базовая точка для следующего сравнения." if russian else "first record: this is the baseline for your next comparison.")
+            lines.append("Оценка: первая запись — она станет базовой точкой для следующего сравнения." if russian else "Assessment: first record — this becomes the baseline for your next comparison.")
+        if state["risks"]:
+            suggested_weight = max_weight * 0.9
+            next_step = (
+                f"Следующий шаг: начните примерно с {suggested_weight:g} kg и оставьте 1–2 повтора в запасе."
+                if russian else f"Next step: start around {suggested_weight:g} kg and keep 1–2 repetitions in reserve."
+            )
+        elif previous and state["volume_changes"][exercise.name] >= 0:
+            suggested_weight = max_weight + 2.5
+            next_step = (
+                f"Следующий шаг: при уверенной технике попробуйте {suggested_weight:g} kg в первом рабочем подходе."
+                if russian else f"Next step: with confident technique, try {suggested_weight:g} kg in the first working set."
+            )
+        else:
+            next_step = (
+                f"Следующий шаг: повторите рабочий вес {max_weight:g} kg и стремитесь улучшить один повтор."
+                if russian else f"Next step: repeat the {max_weight:g} kg working weight and aim to improve one repetition."
+            )
+        lines.append(next_step)
     if state["risks"]:
         lines.extend(state["risks"])
     recommendation = state["recommendation"]
     if state["risks"]:
         recommendation = "не повышайте рабочий вес; повторите тренировку не раньше чем через 72 часа." if russian else "do not increase working weight; repeat this workout no earlier than 72 hours from now."
-    lines.append(f"{'Рекомендация' if russian else 'Recommendation'}: {recommendation}")
+    lines.append(f"\n{'Итоговая рекомендация' if russian else 'Overall recommendation'}: {recommendation}")
     return {"response": "\n".join(lines)}
