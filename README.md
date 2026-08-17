@@ -4,7 +4,7 @@ A LangGraph-powered workout decision-support MVP. It is not a general-purpose ch
 
 ## Features
 
-- Parses Russian and English free-form workout notes, including exercises, sets, sleep, body weight, duration, and heart rate.
+- Parses free-form workout notes, including exercises, sets, sleep, body weight, duration, and heart rate.
 - Stores workout history in SQLite.
 - Calculates training volume and volume change.
 - Flags recovery risks based on sleep.
@@ -23,7 +23,7 @@ If `py` is unavailable, install Python 3.11+ from [python.org](https://www.pytho
 
 ## Usage
 
-Start the assistant without `--text` to enter a free-form workout note directly in the terminal. You can write naturally in Russian or English and finish the note with `END` on a separate line.
+Start the assistant without `--text` to enter a free-form workout note directly in the terminal. Finish the note with `END` on a separate line.
 
 ```powershell
 fitness-assistant
@@ -35,7 +35,7 @@ Example session:
 First-time setup: these metrics are stored once and are not requested after every workout.
 Height (cm): 180
 Current body weight (kg): 83
-Paste or type your workout in Russian or English.
+Paste or type your workout.
 Type END on a separate line when you are finished.
 Bench press
 100x10

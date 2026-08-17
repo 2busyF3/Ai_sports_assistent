@@ -17,7 +17,7 @@ def _required_number(label: str, input_fn=input) -> float:
 
 
 def collect_workout_note(input_fn=input) -> str:
-    print("Paste or type your workout in Russian or English.")
+    print("Paste or type your workout.")
     print("Type END on a separate line when you are finished.")
     lines: list[str] = []
     while True:
@@ -56,7 +56,7 @@ def initialize_or_update_profile(repository: SQLiteRepository, input_fn=input) -
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="AI Fitness Assistant")
-    parser.add_argument("--text", help="Free-form workout note in Russian or English")
+    parser.add_argument("--text", help="Free-form workout note")
     parser.add_argument("--db", default="fitness.db", help="Path to the SQLite database")
     args = parser.parse_args()
     repository = SQLiteRepository(args.db)
