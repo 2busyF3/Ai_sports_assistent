@@ -1,8 +1,8 @@
 def recovery_risks(sleep_hours: float | None) -> list[str]:
     if sleep_hours is None:
-        return ["Данные о сне не указаны — восстановление оценено неполно."]
+        return ["Sleep data was not provided, so recovery cannot be fully assessed."]
     if sleep_hours < 6:
-        return ["Сон существенно ниже нормы (менее 6 часов)."]
+        return ["Sleep is substantially below target (under 6 hours)."]
     if sleep_hours < 7:
-        return ["Сон ниже целевого уровня (7–9 часов)."]
+        return ["Sleep is below the target range (7–9 hours)."]
     return []

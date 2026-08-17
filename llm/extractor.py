@@ -4,9 +4,9 @@ import os
 import re
 from models import ExerciseEntry, SetEntry, WorkoutInput
 
-SET_PATTERN = re.compile(r"(?P<weight>\d+(?:[.,]\d+)?)\s*[xх×*]\s*(?P<reps>\d+)", re.IGNORECASE)
-SLEEP_PATTERN = re.compile(r"сон\s*[:=-]?\s*(\d+(?:[.,]\d+)?)\s*(?:час|ч)", re.IGNORECASE)
-BODY_WEIGHT_PATTERN = re.compile(r"вес\s*[:=-]?\s*(\d+(?:[.,]\d+)?)\s*кг", re.IGNORECASE)
+SET_PATTERN = re.compile(r"(?P<weight>\d+(?:[.,]\d+)?)\s*[x×*]\s*(?P<reps>\d+)", re.IGNORECASE)
+SLEEP_PATTERN = re.compile(r"sleep\s*[:=-]?\s*(\d+(?:[.,]\d+)?)\s*(?:hours?|hrs?|h)", re.IGNORECASE)
+BODY_WEIGHT_PATTERN = re.compile(r"(?:body )?weight\s*[:=-]?\s*(\d+(?:[.,]\d+)?)\s*kg", re.IGNORECASE)
 
 
 def _number(value: str) -> float:
@@ -21,7 +21,7 @@ def extract_locally(text: str) -> WorkoutInput:
     def flush() -> None:
         nonlocal current_name, current_sets
         if current_sets:
-            exercises.append(ExerciseEntry(name=current_name or "Упражнение", sets=current_sets))
+            exercises.append(ExerciseEntry(name=current_name or "Exercise", sets=current_sets))
         current_name, current_sets = None, []
 
     for raw_line in text.splitlines():
@@ -59,12 +59,12 @@ def extract_workout(text: str) -> WorkoutInput:
     completion = client.beta.chat.completions.parse(
         model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
         messages=[
-            {"role": "system", "content": "Извлеки из текста тренировку. Не выдумывай упражнения, подходы, сон или вес."},
+            {"role": "system", "content": "Extract workout data from the text. Do not invent exercises, sets, sleep, or body weight."},
             {"role": "user", "content": text},
         ],
         response_format=WorkoutInput,
     )
     result = completion.choices[0].message.parsed
     if result is None:
-        raise ValueError("Модель не вернула структурированные данные тренировки")
+        raise ValueError("The model did not return structured workout data")
     return result

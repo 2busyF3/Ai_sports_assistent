@@ -1,17 +1,17 @@
 # AI Fitness Assistant
 
-MVP системы принятия решений для тренировок. Это не чат-тренер: приложение извлекает тренировочные данные из обычного текста, сохраняет их в SQLite, сравнивает с предыдущей сессией и формирует объяснимую рекомендацию через граф LangGraph.
+A LangGraph-powered workout decision-support MVP. It is not a general-purpose chatbot: it extracts workout data from plain text, stores it in SQLite, compares it with the previous session, and produces an explainable recommendation.
 
-## Возможности
+## Features
 
-- разбор русского текста: упражнения, подходы, сон и вес;
-- хранение истории тренировок в SQLite;
-- расчёт тоннажа и изменения объёма;
-- проверка восстановления по сну;
-- граф: `extract → history → analytics → (analysis + risks) → response`;
-- локальный parser по умолчанию, OpenAI Structured Outputs — опционально.
+- Parses English workout text: exercises, sets, sleep, and body weight.
+- Stores workout history in SQLite.
+- Calculates training volume and volume change.
+- Flags recovery risks based on sleep.
+- Orchestrates the workflow as `extract → history → analytics → (analysis + risks) → response` with LangGraph.
+- Uses a local parser by default; OpenAI Structured Outputs are optional.
 
-## Установка (Windows / PowerShell)
+## Installation (Windows / PowerShell)
 
 ```powershell
 py -m venv .venv
@@ -19,52 +19,54 @@ py -m venv .venv
 pip install -e ".[dev]"
 ```
 
-Если команда `py` отсутствует, установите Python 3.11+ с [python.org](https://www.python.org/downloads/) и во время установки включите **Add Python to PATH**.
+If `py` is unavailable, install Python 3.11+ from [python.org](https://www.python.org/downloads/) and select **Add Python to PATH** during installation.
 
-## Как пользоваться
+## Usage
 
-Передавайте тренировку через `--text`. Подходы одного упражнения пишите с новой строки, а упражнения разделяйте пустой строкой. Можно также добавить сон и массу тела.
-
-```powershell
-fitness-assistant --text "Жим лёжа 100x8`n100x8`n100x6`n`nРазводка 20x12`n20x10`n20x9`n`nСон 6 часов`nВес 83 кг"
-```
-
-После первого запуска рядом с программой появится `fitness.db`. Не удаляйте этот файл: в нём хранится история, с которой ассистент сравнивает новые тренировки. Чтобы указать другое хранилище, передайте `--db`:
+Pass your workout in the `--text` argument. Put each set on a new line and separate exercises with a blank line. Sleep and body weight are optional.
 
 ```powershell
-fitness-assistant --db data\my-workouts.db --text "Присед 100x5`n100x5`n100x5`n`nСон 8 часов"
+fitness-assistant --text "Bench press 100x8`n100x8`n100x6`n`nChest fly 20x12`n20x10`n20x9`n`nSleep 6 hours`nWeight 83 kg"
 ```
 
-Повторите команду с тем же файлом БД после следующей тренировки — ответ покажет прошлые подходы и изменение тренировочного объёма. Для запуска без установленной команды используйте:
+The first run creates `fitness.db` beside the application. Keep this file: it contains the training history used for comparisons. Provide `--db` to use a different database:
 
 ```powershell
-.venv\Scripts\python.exe main.py --text "Жим лёжа 100x8`n100x8`n100x6`n`nСон 6 часов"
+fitness-assistant --db data\my-workouts.db --text "Squat 100x5`n100x5`n100x5`n`nSleep 8 hours"
 ```
 
-### LLM-разбор (необязательно)
+Run the command again after your next workout with the same database file. The response will show the previous sets, volume change, recovery risks, and a recommendation.
 
-Без ключа приложение использует локальный parser и не отправляет данные в интернет. Чтобы разбирать более свободный текст через OpenAI, задайте ключ перед запуском:
+If the console command is unavailable, run the entry point directly:
 
 ```powershell
-$env:OPENAI_API_KEY="ваш_ключ"
-fitness-assistant --text "Сегодня сделал три подхода жима лёжа: 100 на 8, 100 на 8 и 100 на 6. Спал шесть часов."
+.venv\Scripts\python.exe main.py --text "Bench press 100x8`n100x8`n100x6`n`nSleep 6 hours"
 ```
 
-При необходимости модель меняется через `$env:OPENAI_MODEL`; по умолчанию используется `gpt-4o-mini`.
+### Optional OpenAI extraction
 
-## Структура
+Without an API key, the app uses the local parser and sends no workout data over the network. To handle more natural, free-form English notes, set an OpenAI API key before running the command:
+
+```powershell
+$env:OPENAI_API_KEY="your_api_key"
+fitness-assistant --text "Today I performed three bench press sets: 100 kg for 8, 100 kg for 8, and 100 kg for 6. I slept six hours."
+```
+
+Set `$env:OPENAI_MODEL` to select another model; the default is `gpt-4o-mini`.
+
+## Project layout
 
 ```text
-analytics/   # тоннаж, прогрессия, восстановление
-database/    # SQLite-репозиторий
-graph/       # State, nodes и LangGraph
-llm/         # OpenAI/локальное извлечение
+analytics/   # volume, progression, and recovery calculations
+database/    # SQLite repository
+graph/       # state, nodes, and LangGraph orchestration
+llm/         # OpenAI and local text extraction
 ```
 
-## Тесты
+## Tests
 
 ```powershell
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Проверка покрывает извлечение данных, запись в SQLite, чтение истории, изменение объёма и работу графа LangGraph.
+The test suite covers text extraction, SQLite persistence, historical comparisons, volume changes, and the LangGraph workflow.

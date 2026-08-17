@@ -37,11 +37,11 @@ def risks_node(state: FitnessState) -> dict:
 def analysis_node(state: FitnessState) -> dict:
     changes = [item for item in state["volume_changes"].values() if item is not None]
     if changes and min(changes) <= -10:
-        recommendation = "сохранить текущий вес и восстановить объём на следующей тренировке."
+        recommendation = "keep the current weight and rebuild volume in the next workout."
     elif changes and all(change >= 0 for change in changes):
-        recommendation = "можно прибавить 1 повтор в одном подходе или 2,5 кг при уверенной технике."
+        recommendation = "add one rep to one set or 2.5 kg if your technique is solid."
     else:
-        recommendation = "повторить текущую нагрузку и ориентироваться на технику и самочувствие."
+        recommendation = "repeat the current load and prioritize technique and how you feel."
     return {"recommendation": recommendation}
 
 
@@ -49,19 +49,19 @@ def response_node(state: FitnessState) -> dict:
     workout = state["workout"]
     lines: list[str] = []
     for exercise in workout.exercises:
-        lines.append(f"{exercise.name}: сейчас {format_sets(exercise)}")
+        lines.append(f"{exercise.name}: current {format_sets(exercise)}")
         previous = state["previous"].get(exercise.name)
         if previous:
             old_sets = ", ".join(f"{item.weight_kg:g}x{item.reps}" for item in previous.sets)
-            lines.append(f"прошлый раз {old_sets}")
+            lines.append(f"previous workout {old_sets}")
             change = state["volume_changes"][exercise.name]
-            lines.append(f"объём {'вырос' if change >= 0 else 'снизился'} на {abs(change):.0f}%")
+            lines.append(f"volume {'increased' if change >= 0 else 'decreased'} by {abs(change):.0f}%")
         else:
-            lines.append("первая запись: базовая точка для следующего сравнения.")
+            lines.append("first record: this is the baseline for your next comparison.")
     if state["risks"]:
         lines.extend(state["risks"])
     recommendation = state["recommendation"]
     if state["risks"]:
-        recommendation = "не повышать рабочий вес; повторить тренировку не раньше чем через 72 часа."
-    lines.append(f"Рекомендация: {recommendation}")
+        recommendation = "do not increase working weight; repeat this workout no earlier than 72 hours from now."
+    lines.append(f"Recommendation: {recommendation}")
     return {"response": "\n".join(lines)}
