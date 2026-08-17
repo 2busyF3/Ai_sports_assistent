@@ -34,7 +34,13 @@ def analytics_node(state: FitnessState) -> dict:
 
 
 def risks_node(state: FitnessState) -> dict:
-    return {"risks": recovery_risks(state["workout"].sleep_hours)}
+    workout = state["workout"]
+    risks = recovery_risks(workout.sleep_hours)
+    if workout.duration_minutes and workout.duration_minutes >= 120:
+        risks.append("The session lasted at least two hours; consider reducing volume if fatigue is accumulating.")
+    if workout.heart_rate_max and workout.heart_rate_max >= 170:
+        risks.append("Peak heart rate was high; allow adequate recovery and monitor how you feel.")
+    return {"risks": risks}
 
 
 def analysis_node(state: FitnessState) -> dict:

@@ -4,7 +4,7 @@ A LangGraph-powered workout decision-support MVP. It is not a general-purpose ch
 
 ## Features
 
-- Parses English workout text: exercises, sets, sleep, and body weight.
+- Parses Russian and English free-form workout notes, including exercises, sets, sleep, body weight, duration, and heart rate.
 - Stores workout history in SQLite.
 - Calculates training volume and volume change.
 - Flags recovery risks based on sleep.
@@ -23,7 +23,7 @@ If `py` is unavailable, install Python 3.11+ from [python.org](https://www.pytho
 
 ## Usage
 
-Start the assistant without `--text` to use the recommended structured input. It asks for each field separately, so you do not need to type multiline PowerShell commands.
+Start the assistant without `--text` to enter a free-form workout note directly in the terminal. You can write naturally in Russian or English and finish the note with `END` on a separate line.
 
 ```powershell
 fitness-assistant
@@ -32,16 +32,20 @@ fitness-assistant
 Example session:
 
 ```text
-Exercise name: Bench press
-Weight (kg): 100
-Reps per set: 10
-Number of sets: 3
-Exercise name:
-Sleep (hours, optional): 8
-Body weight (kg, optional): 83
+First-time setup: these metrics are stored once and are not requested after every workout.
+Height (cm): 180
+Current body weight (kg): 83
+Paste or type your workout in Russian or English.
+Type END on a separate line when you are finished.
+Bench press
+100x10
+100x10
+100x10
+Sleep 8 hours
+END
 ```
 
-The first run creates `fitness.db` beside the application. Keep this file: it contains the training history used for comparisons. Provide `--db` to use a different database:
+The first run creates `fitness.db` beside the application. It also stores height and initial body weight in the same local database. Height is requested only once; body weight is requested again no more often than once every seven days. Keep this file: it contains the profile and training history used for comparisons. Provide `--db` to use a different database:
 
 ```powershell
 fitness-assistant --db data\my-workouts.db
@@ -49,7 +53,7 @@ fitness-assistant --db data\my-workouts.db
 
 Run the command again after your next workout with the same database file. The response will show the previous sets, volume change, recovery risks, and a recommendation.
 
-Use `--text` only when you want to parse a free-form workout note:
+Use `--text` when you want to send a note in one command, for example from a bot or a script:
 
 ```powershell
 fitness-assistant --text "Bench press 100x8`n100x8`n100x6`n`nSleep 6 hours"
